@@ -4,7 +4,7 @@ EXAMPLE = $(wildcard *.example)
 OUTPUT = $(INPUT:%.input=build/%.output)
 ALL = $(SRC:%.hs=%) $(SRC:%.hs=%.input) $(OUTPUT) $(EXAMPLE:%.example=build/%.example.output)
 FLAGS = -O2
-YEAR = 2021
+YEAR = 2022
 
 all: build $(ALL)
 
