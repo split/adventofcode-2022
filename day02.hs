@@ -8,8 +8,8 @@ part1 = ("Part 1: " ++) . show . sum . map score
 
 part2 = ("Part 2: " ++) . show . sum . map (score . puppet)
 
-score (a, b) = b + 3 * ((b - a) `mod` 3)
+score (a, b) = 1 + b + 3 * ((b - a + 1) `mod` 3)
 
-puppet (a, b) = (a, (a + b - 2) `mod` 3 + 1)
+puppet (a, b) = (a, (a + b - 1) `mod` 3)
 
-parse [[a], [b]] = (ord a - ord 'A', ord b - ord 'X' + 1)
+parse [[a], [b]] = (ord a - ord 'A', ord b - ord 'X')
