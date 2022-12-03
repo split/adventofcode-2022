@@ -6,7 +6,7 @@ import Data.List.Split (chunksOf)
 
 main = interact (unlines . sequence [part1, part2] . lines)
 
-part1 = ("Part 1: " ++) . show . sum . map (priority . complement . (\rucksack -> chunksOf (length rucksack `div` 2) rucksack))
+part1 = ("Part 1: " ++) . show . sum . map (priority . complement . (((`div` 2) . length) >>= chunksOf))
 
 part2 = ("Part 2: " ++) . show . sum . map (priority . complement) . chunksOf 3
 
