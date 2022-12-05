@@ -1,10 +1,6 @@
 module Main where
 
-import Control.Monad (join)
-import Data.Bifunctor (bimap)
-import Data.List (partition)
 import Data.List.Split (splitOn)
-import GHC.Enum (boundedEnumFrom)
 
 main = interact (unlines . sequence [part1, part2] . map parse . lines)
 
