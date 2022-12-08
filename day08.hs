@@ -10,19 +10,17 @@ type Forest = Map (Int, Int) Int
 
 main = interact (unlines . sequence [part1, part2] . forest . lines)
 
-part1 forest = "Part 1: " ++ show (length $ Map.filterWithKey (visible forest) forest)
+part1 forest = "Part 1: " ++ show (length $ Map.filterWithKey (visibleFromDir forest) forest)
 
 part2 forest = "Part 2: " ++ show (maximum $ Map.mapWithKey (scenicScore forest) forest)
 
-visible forest pos height = any (visibleFromDir pos height forest) dirs
-
-visibleFromDir :: (Int, Int) -> Int -> Forest -> (Int, Int) -> Bool
-visibleFromDir pos height forest dir = follow pos
+visibleFromDir :: Forest -> (Int, Int) -> Int -> Bool
+visibleFromDir forest pos height = any (follow pos) dirs
   where
-    follow pos =
+    follow pos dir =
       let pos' = add pos dir
        in case Map.lookup pos' forest of
-            Just n -> (n < height) && follow pos'
+            Just n -> (n < height) && follow pos' dir
             Nothing -> True
 
 scenicScore :: Forest -> (Int, Int) -> Int -> Int
