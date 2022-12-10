@@ -1,7 +1,6 @@
 module Main where
 
 import Control.Monad (ap)
-import Control.Monad.Trans.State
 import Data.List (nub)
 import Data.Set (Set)
 import Data.Set qualified as Set
@@ -14,20 +13,20 @@ data Dir = R | L | U | D
 main = interact (unlines . sequence [part1] . concatMap parse . lines)
 
 part1 :: [Dir] -> String
-part1 = ("Part 1: " ++) . show . length . nub . map snd . scanl move ((0, 0), (0, 0))
+part1 = ("Part 1: " ++) . show . length . nub . tailMoves . headMoves
 
-move :: (Pos, Pos) -> Dir -> (Pos, Pos)
-move (headPos, tailPos) dir
-  | dist headPos' tailPos > 1 = (headPos', headPos)
-  | otherwise = (headPos', tailPos)
+headMoves = scanl move (0, 0)
+
+tailMoves :: [Pos] -> [Pos]
+tailMoves = scanl moveTail (0, 0) . ap zip (drop 1)
   where
-    headPos' = move' dir headPos
+    moveTail tp (pp, hp) = if dist tp hp > 1 then pp else tp
 
-move' :: Dir -> Pos -> Pos
-move' R (x, y) = (x + 1, y)
-move' L (x, y) = (x - 1, y)
-move' U (x, y) = (x, y - 1)
-move' D (x, y) = (x, y + 1)
+move :: Pos -> Dir -> Pos
+move (x, y) R = (x + 1, y)
+move (x, y) L = (x - 1, y)
+move (x, y) U = (x, y - 1)
+move (x, y) D = (x, y + 1)
 
 dist :: Pos -> Pos -> Int
 dist (x1, y1) (x2, y2) = max (abs (x2 - x1)) (abs (y2 - y1))
