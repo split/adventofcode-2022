@@ -2,8 +2,6 @@ module Main where
 
 import Control.Monad (ap)
 import Data.List (nub)
-import Data.Set (Set)
-import Data.Set qualified as Set
 
 type Pos = (Int, Int)
 
