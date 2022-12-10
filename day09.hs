@@ -32,4 +32,4 @@ dist :: Pos -> Pos -> Int
 dist (x1, y1) (x2, y2) = max (abs (x2 - x1)) (abs (y2 - y1))
 
 parse :: String -> [Dir]
-parse = ap (flip replicate . read . take 1) (read . drop 2)
+parse = ap (replicate . read . drop 2) (read . take 1)
