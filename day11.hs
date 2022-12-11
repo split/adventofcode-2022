@@ -24,7 +24,7 @@ type MonkeyReg = Map String Monkey
 instance Show Monkey where
   show m = "Monkey " ++ mid m ++ ": " ++ show (items m)
 
-main = interact (unlines . sequence [part1] . toReq . parse)
+main = interact (unlines . sequence [part1] . parseMonkeyReq)
 
 part1 = ("Part 1: " ++) . show . monkeyBusiness . (!! 20) . iterate inspectRound
 
@@ -45,10 +45,10 @@ inspectItem Monkey {..} = ap (,) test . (`div` 3) . op
 throw :: Int -> String -> MonkeyReg -> MonkeyReg
 throw = Map.adjust . alterItems . (++) . singleton
 
-parse :: [Char] -> [Monkey]
-parse = map (monkey' . lines) . splitOn "\n\n"
+parseMonkeyReq :: [Char] -> MonkeyReg
+parseMonkeyReq = Map.fromList . map (monkey' . lines) . splitOn "\n\n"
   where
-    monkey' (mid : items : op : test : t : f : _) = Monkey mid' items' op' test' 0
+    monkey' (mid : items : op : test : t : f : _) = (mid', Monkey mid' items' op' test' 0)
       where
         mid' = init $ last $ words mid
         items' = map read . splitOn ", " $ last $ splitOn ": " items
@@ -56,9 +56,6 @@ parse = map (monkey' . lines) . splitOn "\n\n"
         div' = read $ val' test
         test' old = val' $ if old `mod` div' == 0 then t else f
         val' = last . words
-
-toReq :: [Monkey] -> MonkeyReg
-toReq = Map.fromList . map (ap ((,) . mid) id)
 
 alterItems :: ([Int] -> [Int]) -> Monkey -> Monkey
 alterItems f monkey = monkey {items = f (items monkey)}
