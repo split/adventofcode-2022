@@ -26,21 +26,21 @@ instance Show Monkey where
 
 main = interact (unlines . sequence [part1] . parseMonkeyReq)
 
-part1 = ("Part 1: " ++) . show . monkeyBusiness . (!! 20) . iterate inspectRound
+part1 = ("Part 1: " ++) . show . monkeyBusiness . (!! 20) . iterate (inspectRound 3)
 
 monkeyBusiness = product . take 2 . sortOn Down . map inspected . Map.elems
 
-inspectRound :: MonkeyReg -> MonkeyReg
-inspectRound = ap (foldl (\reg mid -> inspect (reg Map.! mid) reg)) Map.keys
+inspectRound :: Int -> MonkeyReg -> MonkeyReg
+inspectRound borediv = ap (foldl (\reg mid -> inspect borediv (reg Map.! mid) reg)) Map.keys
 
-inspect :: Monkey -> MonkeyReg -> MonkeyReg
-inspect monkey@Monkey {..} = markInspected . throwInspected
+inspect :: Int -> Monkey -> MonkeyReg -> MonkeyReg
+inspect borediv monkey@Monkey {..} = markInspected . throwInspected
   where
     markInspected = Map.insert mid (monkey {items = [], inspected = inspected + length items})
-    throwInspected = flip (foldr (uncurry throw)) (map (inspectItem monkey) items)
+    throwInspected = flip (foldr (uncurry throw)) (map (inspectItem borediv monkey) items)
 
-inspectItem :: Monkey -> Int -> (Int, String)
-inspectItem Monkey {..} = ap (,) test . (`div` 3) . op
+inspectItem :: Int -> Monkey -> Int -> (Int, String)
+inspectItem borediv Monkey {..} = ap (,) test . (`div` borediv) . op
 
 throw :: Int -> String -> MonkeyReg -> MonkeyReg
 throw = Map.adjust . alterItems . (++) . singleton
