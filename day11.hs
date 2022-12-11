@@ -29,7 +29,7 @@ main = interact (unlines . sequence [part1, part2] . parseMonkeyReq)
 
 part1 = ("Part 1: " ++) . show . monkeyBusiness . (!! 20) . iterate (inspectRound (`div` 3))
 
-part2 = ("Part 2: " ++) . show . monkeyBusiness . (!! 10000) . ap (iterate . inspectRound . getBoredom) id
+part2 = ("Part 2: " ++) . show . monkeyBusiness . (!! 10000) . (inspectRound . getBoredom >>= iterate)
   where
     getBoredom = flip mod . foldr (lcm . divisor) 1
 
