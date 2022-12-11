@@ -2,14 +2,12 @@
 
 module Main where
 
-import Control.Monad (ap, (<=<))
-import Control.Monad.Trans.State (State, modify)
+import Control.Monad (ap)
 import Data.List (singleton, sortOn)
 import Data.List.Split (splitOn)
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import Data.Ord (Down (Down))
-import Debug.Trace (trace)
 
 data Monkey = Monkey
   { mid :: String,
