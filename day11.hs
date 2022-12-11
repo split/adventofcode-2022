@@ -4,10 +4,11 @@ module Main where
 
 import Control.Monad (ap, (<=<))
 import Control.Monad.Trans.State (State, modify)
-import Data.List (singleton, sort)
+import Data.List (singleton, sortOn)
 import Data.List.Split (splitOn)
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
+import Data.Ord (Down (Down))
 import Debug.Trace (trace)
 
 data Monkey = Monkey
@@ -25,7 +26,9 @@ instance Show Monkey where
 
 main = interact (unlines . sequence [part1] . toReq . parse)
 
-part1 = ("Part 1: " ++) . show . product . take 2 . reverse . sort . map inspected . Map.elems . (!! 20) . iterate inspectRound
+part1 = ("Part 1: " ++) . show . monkeyBusiness . (!! 20) . iterate inspectRound
+
+monkeyBusiness = product . take 2 . sortOn Down . map inspected . Map.elems
 
 inspectRound :: MonkeyReg -> MonkeyReg
 inspectRound reg = foldl (\reg' k -> inspect (reg' Map.! k) reg') reg (Map.keys reg)
