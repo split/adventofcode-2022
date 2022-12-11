@@ -16,6 +16,7 @@ data Monkey = Monkey
     items :: [Int],
     op :: Int -> Int,
     test :: Int -> String,
+    divisor :: Int,
     inspected :: Int
   }
 
@@ -24,23 +25,27 @@ type MonkeyReg = Map String Monkey
 instance Show Monkey where
   show m = "Monkey " ++ mid m ++ ": " ++ show (items m)
 
-main = interact (unlines . sequence [part1] . parseMonkeyReq)
+main = interact (unlines . sequence [part1, part2] . parseMonkeyReq)
 
-part1 = ("Part 1: " ++) . show . monkeyBusiness . (!! 20) . iterate (inspectRound 3)
+part1 = ("Part 1: " ++) . show . monkeyBusiness . (!! 20) . iterate (inspectRound (`div` 3))
+
+part2 = ("Part 2: " ++) . show . monkeyBusiness . (!! 10000) . ap (iterate . inspectRound . getBoredom) id
+  where
+    getBoredom = flip mod . foldr (lcm . divisor) 1
 
 monkeyBusiness = product . take 2 . sortOn Down . map inspected . Map.elems
 
-inspectRound :: Int -> MonkeyReg -> MonkeyReg
-inspectRound borediv = ap (foldl (\reg mid -> inspect borediv (reg Map.! mid) reg)) Map.keys
+inspectRound :: (Int -> Int) -> MonkeyReg -> MonkeyReg
+inspectRound boredom = ap (foldl (\reg mid -> inspect boredom (reg Map.! mid) reg)) Map.keys
 
-inspect :: Int -> Monkey -> MonkeyReg -> MonkeyReg
-inspect borediv monkey@Monkey {..} = markInspected . throwInspected
+inspect :: (Int -> Int) -> Monkey -> MonkeyReg -> MonkeyReg
+inspect boredom monkey@Monkey {..} = markInspected . throwInspected
   where
     markInspected = Map.insert mid (monkey {items = [], inspected = inspected + length items})
-    throwInspected = flip (foldr (uncurry throw)) (map (inspectItem borediv monkey) items)
+    throwInspected = flip (foldr (uncurry throw)) (map (inspectItem boredom monkey) items)
 
-inspectItem :: Int -> Monkey -> Int -> (Int, String)
-inspectItem borediv Monkey {..} = ap (,) test . (`div` borediv) . op
+inspectItem :: (Int -> Int) -> Monkey -> Int -> (Int, String)
+inspectItem boredom Monkey {..} = ap (,) test . boredom . op
 
 throw :: Int -> String -> MonkeyReg -> MonkeyReg
 throw = Map.adjust . alterItems . (++) . singleton
@@ -48,7 +53,7 @@ throw = Map.adjust . alterItems . (++) . singleton
 parseMonkeyReq :: [Char] -> MonkeyReg
 parseMonkeyReq = Map.fromList . map (monkey' . lines) . splitOn "\n\n"
   where
-    monkey' (mid : items : op : test : t : f : _) = (mid', Monkey mid' items' op' test' 0)
+    monkey' (mid : items : op : test : t : f : _) = (mid', Monkey mid' items' op' test' div' 0)
       where
         mid' = init $ last $ words mid
         items' = map read . splitOn ", " $ last $ splitOn ": " items
