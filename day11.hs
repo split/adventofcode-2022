@@ -43,14 +43,16 @@ throw :: Int -> String -> MonkeyReg -> MonkeyReg
 throw = Map.adjust . alterItems . (++) . singleton
 
 parse :: [Char] -> [Monkey]
-parse = map monkey' . splitOn "\n\n"
+parse = map (monkey' . lines) . splitOn "\n\n"
   where
-    monkey' = (\[mid, items, op, test, t, f] -> Monkey (mid' mid) (items' items) (op' op) (test' (read (val' test)) (val' t) (val' f)) 0) . lines
-    mid' = init . last . words
-    items' = map read . splitOn ", " . last . splitOn ": "
-    op' = execOp . drop 3 . words
-    test' n t f old = if old `mod` n == 0 then t else f
-    val' = last . words
+    monkey' (mid : items : op : test : t : f : _) = Monkey mid' items' op' test' 0
+      where
+        mid' = init $ last $ words mid
+        items' = map read . splitOn ", " $ last $ splitOn ": " items
+        op' = execOp $ drop 3 $ words op
+        div' = read $ val' test
+        test' old = val' $ if old `mod` div' == 0 then t else f
+        val' = last . words
 
 toReq :: [Monkey] -> MonkeyReg
 toReq = Map.fromList . map (ap ((,) . mid) id)
