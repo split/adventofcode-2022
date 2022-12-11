@@ -31,7 +31,7 @@ part1 = ("Part 1: " ++) . show . monkeyBusiness . (!! 20) . iterate inspectRound
 monkeyBusiness = product . take 2 . sortOn Down . map inspected . Map.elems
 
 inspectRound :: MonkeyReg -> MonkeyReg
-inspectRound reg = foldl (\reg' k -> inspect (reg' Map.! k) reg') reg (Map.keys reg)
+inspectRound = ap (foldl (\reg mid -> inspect (reg Map.! mid) reg)) Map.keys
 
 inspect :: Monkey -> MonkeyReg -> MonkeyReg
 inspect monkey@Monkey {..} = markInspected . throwInspected
