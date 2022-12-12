@@ -16,15 +16,17 @@ type Point = (Int, Int)
 
 type Grid a = Map Point a
 
-main = interact (unlines . sequence [part1] . grid . lines)
+main = interact (unlines . sequence [part1, part2] . grid . lines)
 
-part1 = ("Part 1: " ++) . maybe "" show . safestPathLength
+part1 = ("Part 1: " ++) . maybe "" show . safestPathLength (==)
+
+part2 g = "Part 2: " ++ maybe "" show (safestPathLength (\_ p -> (g M.! p) == ord 'a') g)
 
 start = lookupKey (ord 'S')
 
 end = lookupKey (ord 'E')
 
-safestPathLength grid = dijkstra g' s' e'
+safestPathLength f grid = dijkstra g' e' (f s')
   where
     g' = M.insert s' (ord 'a') $ M.insert e' (ord 'z') grid
     s' = start grid
@@ -39,7 +41,7 @@ dijkstra grid start end = dijkstra' initialHeap initialDistances
     dijkstra' heap distances = do
       ((dist, point), heap') <- H.uncons heap
       from <- M.lookup point grid
-      if point == end
+      if end point
         then trace (show distances) return dist
         else
           let safer = M.differenceWithKey pickSafer (neighbors point distances) grid
@@ -47,7 +49,7 @@ dijkstra grid start end = dijkstra' initialHeap initialDistances
            in dijkstra' (toHeap safer <> heap') (safer <> distances)
 
 validMove :: (Ord a, Num a) => a -> a -> Bool
-validMove from to = to <= from + 1
+validMove from to = to >= from - 1
 
 grid :: [String] -> Grid Int
 grid rows = M.fromList [((x, y), ord col) | (cols, y) <- zip rows [0 ..], (col, x) <- zip cols [0 ..]]
