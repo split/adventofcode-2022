@@ -10,7 +10,6 @@ import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as M
 import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import Data.Tuple (swap)
-import Debug.Trace (trace)
 
 type Point = (Int, Int)
 
@@ -22,18 +21,13 @@ part1 = ("Part 1: " ++) . maybe "" show . safestPathLength (==)
 
 part2 g = "Part 2: " ++ maybe "" show (safestPathLength (\_ p -> (g M.! p) == ord 'a') g)
 
-start = lookupKey (ord 'S')
-
-end = lookupKey (ord 'E')
-
-safestPathLength f grid = dijkstra g' e' (f s')
+safestPathLength startCheck grid = dijkstra grid' end (startCheck start)
   where
-    g' = M.insert s' (ord 'a') $ M.insert e' (ord 'z') grid
-    s' = start grid
-    e' = end grid
+    grid' = M.insert start (ord 'a') $ M.insert end (ord 'z') grid
+    start = lookupKey (ord 'S') grid
+    end = lookupKey (ord 'E') grid
 
--- dijkstra :: Map Point Int -> Point -> Point -> Maybe (Int, Int)
-dijkstra grid start end = dijkstra' initialHeap initialDistances
+dijkstra grid start isEnd = dijkstra' initialHeap initialDistances
   where
     initialHeap :: Heap (Int, Point)
     initialHeap = H.singleton (0, start)
@@ -41,11 +35,11 @@ dijkstra grid start end = dijkstra' initialHeap initialDistances
     dijkstra' heap distances = do
       ((dist, point), heap') <- H.uncons heap
       from <- M.lookup point grid
-      if end point
-        then trace (show distances) return dist
+      if isEnd point
+        then return dist
         else
-          let safer = M.differenceWithKey pickSafer (neighbors point distances) grid
-              pickSafer p d to = if validMove from to && d > dist + 1 then Just (dist + 1) else Nothing
+          let safer = M.differenceWith pickSafer (neighbors point distances) grid
+              pickSafer d to = if validMove from to && d > dist + 1 then Just (dist + 1) else Nothing
            in dijkstra' (toHeap safer <> heap') (safer <> distances)
 
 validMove :: (Ord a, Num a) => a -> a -> Bool
