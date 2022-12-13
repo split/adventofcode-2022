@@ -1,8 +1,7 @@
 module Main where
 
-import Control.Monad (ap)
 import Data.Char (isDigit)
-import Data.List (elemIndex, findIndices, sort)
+import Data.List (findIndices, sort)
 import Data.List.Split (splitOn)
 
 data Signal a = Packet a | Signal [Signal a] deriving (Show, Read, Eq)
