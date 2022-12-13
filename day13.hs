@@ -17,10 +17,7 @@ main = interact (unlines . sequence [part1, part2] . map (map signal . lines) . 
 
 part1, part2 :: [[Signal Int]] -> String
 part1 = ("Part 1: " ++) . show . sum . map fst . filter ((\[a, b] -> a <= b) . snd) . zip [1 ..]
-part2 = ("Part 2: " ++) . show . product . map (+ 1) . findIndices (`elem` dividers) . sort . withDividers
-
-withDividers :: [[Signal Int]] -> [Signal Int]
-withDividers = (dividers ++) . concat
+part2 = ("Part 2: " ++) . show . product . map (+ 1) . findIndices (`elem` dividers) . sort . foldr (++) dividers
 
 dividers = [signal "[[2]]", signal "[[6]]"]
 
