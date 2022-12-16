@@ -14,7 +14,7 @@ main = interact (unlines . sequence [part1, part2] . map (t2p . parse) . lines)
 
 part1, part2 :: [(Point, Point)] -> String
 part1 = ("Part 1: " ++) . show . (ex 10 2000000 >>= scanFreqEmptySpace)
-part2 = ("Part 2: " ++) . show . (ex 20 4000000 >>= scanAndLocateBeacon)
+part2 = ("Part 2: " ++) . show . (ex 20 4000000 >>= scanForBeaconTuningFreq)
 
 ex e r points = if length points <= 14 then e else r
 
@@ -23,11 +23,10 @@ scanFreqEmptySpace hz sensors = scanned - beacons
     scanned = sum $ map snd $ mergeSignals $ freqSlices hz sensors
     beacons = length $ nub $ filter ((== hz) . snd) $ map snd sensors
 
-scanAndLocateBeacon range sensors = tuningFreq $ locateBeacon $ filter ((== 2) . length) $ map (mergeSignals . (`freqSlices` sensors)) [0 .. range]
+scanForBeaconTuningFreq range sensors = tuningFreq $ locateBeacon $ filter ((== 2) . length) $ map (mergeSignals . (`freqSlices` sensors)) [0 .. range]
   where
     locateBeacon ((_ : ((x, y), _) : _) : _) = (x - 1, y)
-
-tuningFreq (x, y) = x * 4000000 + y
+    tuningFreq (x, y) = x * 4000000 + y
 
 -- xxxxxx                    xxxxxxyyyyjjj
 --    yyyyyyy   Bkkk  --->                Bkkk
