@@ -16,7 +16,7 @@ data Sim = Sim {height :: Int, i :: Int, cave :: Set Point} deriving (Show)
 
 initial = Sim {height = 0, i = 0, cave = caveFloor}
 
-main = interact (unlines . sequence [part1] . cycle . map parseJet . init)
+main = interact (unlines . sequence [part1] . cycle . map parseJet . head . lines)
 
 part1 = ("Part 1: " ++) . show . height . (!! 2022) . (\p -> scanl' (simulate p) initial (cycle stoneShapes))
 
@@ -29,20 +29,14 @@ simulate jetPatterns Sim {..} stone =
     }
   where
     placedStone = S.map (add (2, height + 3)) stone
-    (i', stoppedStone) =
-      -- trace (visualize (cave <> placedStone) (height + 4) ++ "\nPlaced: " ++ show placedStone ++ " Height: " ++ show (height + 3)) $
-      jetMove i placedStone
+    (i', stoppedStone) = jetMove i placedStone
 
     jetMove :: Int -> Set Point -> (Int, Set Point)
     jetMove i stone =
       let jetted = fromMaybe stone (move cave stone (jetPatterns !! i))
        in case move cave jetted (0, -1) of
-            Just movedStone ->
-              -- trace (visualize (cave <> movedStone) (height + 4) ++ "\nM: " ++ show (jetPatterns !! i)) $
-              jetMove (i + 1) movedStone
-            Nothing ->
-              -- trace (visualize (cave <> jetted) (height + 4) ++ "\nstopped") $
-              (i + 1, jetted)
+            Just movedStone -> jetMove (i + 1) movedStone
+            Nothing -> (i + 1, jetted)
 
 move cave stone dir =
   let newStone = S.map (add dir) stone
