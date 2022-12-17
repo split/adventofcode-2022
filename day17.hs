@@ -18,7 +18,9 @@ initial = Sim {height = 0, i = 0, cave = caveFloor}
 
 main = interact (unlines . sequence [part1] . cycle . map parseJet . head . lines)
 
-part1 = ("Part 1: " ++) . show . height . (!! 2022) . (\p -> scanl' (simulate p) initial (cycle stoneShapes))
+part1 = ("Part 1: " ++) . show . height . (!! 2022) . runSimulation initial
+
+runSimulation initial jetPatterns = scanl' (simulate jetPatterns) initial (cycle stoneShapes)
 
 simulate :: [Point] -> Sim -> Set Point -> Sim
 simulate jetPatterns Sim {..} stone =
