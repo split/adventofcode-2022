@@ -31,10 +31,7 @@ fillWithWater p surfaces = fill [bmin] S.empty
         nextWater = S.insert point water
         nextPoints on = xs ++ S.toAscList (S.filter inBounds (surface on point))
 
-    inBounds s =
-      (x bmin <= x s && x s <= x bmax)
-        && (x bmin <= y s && y s <= x bmax)
-        && (z bmin <= z s && z s <= z bmax)
+    inBounds s = all (\f -> f bmin <= f s && f s <= f bmax) [x, y, z]
 
 surface :: Set Point -> Point -> Set Point
 surface p = (S.\\ p) . sides
