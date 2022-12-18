@@ -2,10 +2,14 @@
 
 module Main where
 
+import Control.Applicative ((<|>))
+import Control.Monad (ap)
 import Data.Bool (bool)
 import Data.List (scanl')
+import Data.Map.Strict (Map)
+import Data.Map.Strict qualified as M
 import Data.Maybe (fromMaybe)
-import Data.Set (Set, foldl')
+import Data.Set (Set)
 import Data.Set qualified as S
 import Debug.Trace (trace)
 import Text.Printf (printf)
@@ -16,11 +20,33 @@ data Sim = Sim {height :: Int, i :: Int, cave :: Set Point} deriving (Show)
 
 initial = Sim {height = 0, i = 0, cave = caveFloor}
 
-main = interact (unlines . sequence [part1] . cycle . map parseJet . head . lines)
+main = interact (unlines . sequence [part1, part2] . map parseJet . head . lines)
 
+part1, part2 :: [Point] -> [Char]
 part1 = ("Part 1: " ++) . show . height . (!! 2022) . runSimulation initial
+part2 = ("Part 2: " ++) . maybe "" show . rewind 1000000000000
 
-runSimulation initial jetPatterns = scanl' (simulate jetPatterns) initial (cycle stoneShapes)
+runSimulation :: Sim -> [Point] -> [Sim]
+runSimulation initial jetPatterns = scanl' (simulate (cycle jetPatterns)) initial (cycle stoneShapes)
+
+rewind :: Int -> [Point] -> Maybe Int
+rewind target jetPatterns = findTarget (zip [0 ..] sims) M.empty
+  where
+    sims = runSimulation initial jetPatterns
+    stoneIndices = map (`mod` length stoneShapes) [0 ..]
+
+    getCommonDivider start cur =
+      let div = cur - start
+       in if start `mod` div == target `mod` div then Just div else Nothing
+
+    findTarget ((si, sim) : xs) seen = checkCurrent <|> findTarget xs (M.insert key val seen)
+      where
+        key = (stoneIndices !! si, i sim `mod` length jetPatterns)
+        val = (si, height sim)
+        checkCurrent = do
+          (start, height') <- seen M.!? key
+          div' <- getCommonDivider start si
+          return $ height' + (height sim - height') * ((target - si) `div` div' + 1)
 
 simulate :: [Point] -> Sim -> Set Point -> Sim
 simulate jetPatterns Sim {..} stone =
