@@ -17,15 +17,11 @@ part2 p = ("Part 2: " ++) . show $ length $ filter (`elem` wetSurfaces) surfaces
     surfaces = concatMap (S.elems . surface p) $ S.elems p
     wetSurfaces = fillWithWater p $ S.fromAscList surfaces
 
-fillWithWater p surfaces = trace (show $ (bmin, bmax)) $ fill [bmin] S.empty
+fillWithWater p surfaces = fill [bmin] S.empty
   where
     bmin = foldrP1 min surfaces
     bmax = foldrP1 max surfaces
-    inBounds :: Point -> Bool
-    inBounds s =
-      (x bmin <= x s && x s <= x bmax)
-        && (x bmin <= y s && y s <= x bmax)
-        && (z bmin <= z s && z s <= z bmax)
+
     fill [] _ = []
     fill (point : xs) water
       | point `elem` water = fill xs water
@@ -34,6 +30,11 @@ fillWithWater p surfaces = trace (show $ (bmin, bmax)) $ fill [bmin] S.empty
       where
         nextWater = S.insert point water
         nextPoints on = xs ++ S.toAscList (S.filter inBounds (surface on point))
+
+    inBounds s =
+      (x bmin <= x s && x s <= x bmax)
+        && (x bmin <= y s && y s <= x bmax)
+        && (z bmin <= z s && z s <= z bmax)
 
 surface :: Set Point -> Point -> Set Point
 surface p = (S.\\ p) . sides
@@ -46,4 +47,4 @@ parse = S.fromList . map point . lines
 point = (\[x, y, z] -> P x y z) . map read . splitOn ","
 
 foldrP1 :: Foldable f => (Int -> Int -> Int) -> f Point -> Point
-foldrP1 f = foldr1 (\a b -> P (f (x a) (x b)) (f (x a) (x b)) (f (x a) (x b)))
+foldrP1 f = foldr1 (\a b -> P (f (x a) (x b)) (f (y a) (y b)) (f (z a) (z b)))
