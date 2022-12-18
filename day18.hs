@@ -5,7 +5,7 @@ import Data.Set (Set)
 import Data.Set qualified as S
 import Debug.Trace (trace)
 
-type Point = (Int, Int, Int)
+data Point = P {x :: Int, y :: Int, z :: Int} deriving (Eq, Show, Ord)
 
 main = interact (unlines . sequence [part1, part2] . parse)
 
@@ -17,9 +17,15 @@ part2 p = ("Part 2: " ++) . show $ length $ filter (`elem` wetSurfaces) surfaces
     surfaces = concatMap (S.elems . surface p) $ S.elems p
     wetSurfaces = fillWithWater p $ S.fromAscList surfaces
 
-fillWithWater p surfaces = fill [start] S.empty
+fillWithWater p surfaces = trace (show $ (bmin, bmax)) $ fill [bmin] S.empty
   where
-    start = (minimum (S.map x surfaces), minimum (S.map y surfaces), minimum (S.map z surfaces))
+    bmin = foldrP1 min surfaces
+    bmax = foldrP1 max surfaces
+    inBounds :: Point -> Bool
+    inBounds s =
+      (x bmin <= x s && x s <= x bmax)
+        && (x bmin <= y s && y s <= x bmax)
+        && (z bmin <= z s && z s <= z bmax)
     fill [] _ = []
     fill (point : xs) water
       | point `elem` water = fill xs water
@@ -27,30 +33,17 @@ fillWithWater p surfaces = fill [start] S.empty
       | otherwise = fill (nextPoints water) nextWater
       where
         nextWater = S.insert point water
-        nextPoints on = xs ++ S.toAscList (S.filter (inBounds surfaces) (surface on point))
+        nextPoints on = xs ++ S.toAscList (S.filter inBounds (surface on point))
 
 surface :: Set Point -> Point -> Set Point
 surface p = (S.\\ p) . sides
 
 sides :: Point -> Set Point
-sides (x, y, z) = S.fromList [(x, y, z + 1), (x, y, z - 1), (x + 1, y, z), (x - 1, y, z), (x, y + 1, z), (x, y - 1, z)]
+sides (P x y z) = S.fromList [P x y (z + 1), P x y (z - 1), P (x + 1) y z, P (x - 1) y z, P x (y + 1) z, P x (y - 1) z]
 
 parse = S.fromList . map point . lines
 
-point = (\[x, y, z] -> (x, y, z)) . map read . splitOn ","
+point = (\[x, y, z] -> P x y z) . map read . splitOn ","
 
-inBounds :: Set Point -> Point -> Bool
-inBounds p (x', y', z') =
-  (x' >= minimum xs && x' <= maximum xs)
-    && (y' >= minimum ys && y' <= maximum ys)
-    && (z' >= minimum zs && z' <= maximum zs)
-  where
-    xs = S.map x p
-    ys = S.map y p
-    zs = S.map z p
-
-x (x', _, _) = x'
-
-y (_, y', _) = y'
-
-z (_, _, z') = z'
+foldrP1 :: Foldable f => (Int -> Int -> Int) -> f Point -> Point
+foldrP1 f = foldr1 (\a b -> P (f (x a) (x b)) (f (x a) (x b)) (f (x a) (x b)))
