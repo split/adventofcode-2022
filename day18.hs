@@ -1,6 +1,5 @@
 module Main where
 
-import Control.Monad (ap)
 import Data.List.Split (splitOn)
 import Data.Set (Set)
 import Data.Set qualified as S
@@ -20,13 +19,14 @@ part2 p = ("Part 2: " ++) . show $ length $ filter (`elem` wetSurfaces) surfaces
 
 fillWithWater p surfaces = fill [start] S.empty
   where
-    start = (maximum (S.map x surfaces) + 1, maximum (S.map y surfaces) + 1, maximum (S.map z surfaces) + 1)
+    start = (minimum (S.map x surfaces), minimum (S.map y surfaces), minimum (S.map z surfaces))
     fill [] _ = []
     fill (point : xs) water
       | point `elem` water = fill xs water
-      | point `elem` surfaces = point : fill (nextPoints (p <> water)) (S.insert point water)
-      | otherwise = fill (nextPoints water) (S.insert point water)
+      | point `elem` surfaces = point : fill (nextPoints (p <> water)) nextWater
+      | otherwise = fill (nextPoints water) nextWater
       where
+        nextWater = S.insert point water
         nextPoints on = xs ++ S.toAscList (S.filter (inBounds surfaces) (surface on point))
 
 surface :: Set Point -> Point -> Set Point
@@ -41,9 +41,9 @@ point = (\[x, y, z] -> (x, y, z)) . map read . splitOn ","
 
 inBounds :: Set Point -> Point -> Bool
 inBounds p (x', y', z') =
-  (x' >= minimum xs - 1 && x' <= maximum xs + 1)
-    && (y' >= minimum ys - 1 && y' <= maximum ys + 1)
-    && (z' >= minimum zs - 1 && z' <= maximum zs + 1)
+  (x' >= minimum xs && x' <= maximum xs)
+    && (y' >= minimum ys && y' <= maximum ys)
+    && (z' >= minimum zs && z' <= maximum zs)
   where
     xs = S.map x p
     ys = S.map y p
