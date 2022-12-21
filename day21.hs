@@ -47,7 +47,7 @@ operation '=' = (const, const id, const id)
 
 patchMonkeys =
   M.adjust (\(BinaryWork a _ b) -> BinaryWork a '=' b) "root"
-    . M.adjust (const TellNumber) "humn"
+    . M.insert "humn" TellNumber
 
 parse :: String -> Monkeys Int
 parse = M.fromList . map (ap ((,) . init . head) (parseJob . tail) . words) . lines
