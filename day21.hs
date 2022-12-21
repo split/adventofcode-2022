@@ -15,7 +15,6 @@ part1 = ("Part 1: " ++) . show . work "root"
 
 part2 = ("Part 2: " ++) . show . work "root" . patchMonkeys
 
--- work :: String -> Monkeys Int -> Either (Int -> Int) Int
 work :: String -> Monkeys Int -> Int
 work monkey monkeys = either ($ 0) id $ runWork monkey
   where
