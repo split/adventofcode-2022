@@ -34,8 +34,8 @@ work monkey monkeys = fromRight 0 $ runWork monkey
       let (op, revopL, revopR) = operation opc
       let w1 = runWork m1
       let w2 = runWork m2
-      a <- applyRev (runWork m1) revopL w2
-      b <- applyRev (runWork m2) revopR w1
+      a <- applyRev w1 revopL w2
+      b <- applyRev w2 revopR w1
       return (a `op` b)
 
 applyRev (Left revop') revop job = do
