@@ -9,7 +9,7 @@ main = interact (unlines . sequence [part1] . map read . lines)
 
 part1 = ("Part 1: " ++) . show . grove . start0 . mix
 
-grove x = sum [x !! 1000, x !! 2000, x !! 3000]
+grove x = x !! 1000 + x !! 2000 + x !! 3000
 
 start0 = dropWhile (/= 0)
 
