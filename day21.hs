@@ -17,7 +17,7 @@ part2 = ("Part 2: " ++) . show . work "root" . patchMonkeys
 
 -- work :: String -> Monkeys Int -> Either (Int -> Int) Int
 work :: String -> Monkeys Int -> Int
-work monkey monkeys = fromRight 0 $ runWork monkey
+work monkey monkeys = either ($ 0) id $ runWork monkey
   where
     runWork :: String -> Either (Int -> Int) Int
     runWork = work' . (monkeys M.!)
@@ -25,11 +25,6 @@ work monkey monkeys = fromRight 0 $ runWork monkey
     work' :: Job Int -> Either (Int -> Int) Int
     work' (YellNumber n) = return n
     work' TellNumber = Left id
-    work' (BinaryWork m1 '=' m2) = do
-      case (runWork m1, runWork m2) of
-        (Right a, Left revop) -> return (revop a)
-        (Left revop, Right b) -> return (revop b)
-        _ -> error "This is weird, no telling needed"
     work' (BinaryWork m1 opc m2) = do
       let (op, revopL, revopR) = operation opc
       let w1 = runWork m1
@@ -48,6 +43,7 @@ operation '+' = ((+), (-), (-)) -- a + b = c -> a = c - b, b = c - a
 operation '-' = ((-), (+), flip (-)) -- a - b = c -> a = c + b, b = a - c
 operation '*' = ((*), div, div) -- a * b = c -> a = c / b, b = c / b
 operation '/' = (div, (*), flip div) -- a / b = c -> a = c * b, b = a / c
+operation '=' = (const, const id, const id)
 
 patchMonkeys =
   M.adjust (\(BinaryWork a _ b) -> BinaryWork a '=' b) "root"
