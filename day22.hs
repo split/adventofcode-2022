@@ -24,31 +24,29 @@ type Point = (Int, Int)
 
 main = interact (unlines . sequence [part1] . parse)
 
-part1 = ("Part 1: " ++) . show . uncurry score . uncurry follow
+part1 = ("Part 1: " ++) . show . score . uncurry follow
 
 follow :: Board -> [PathN] -> (Dir, Point)
-follow board = foldl' action (R, start)
+follow board = foldl' action (R, start $ M.keys board)
   where
-    start = minimumBy (compare `on` swap) $ M.keys board
-
     action (dir, point) RotateL = (prev dir, point)
     action (dir, point) RotateR = (next dir, point)
-    action (dir, point) (Move n) = (dir, move dir n point)
+    action dp (Move n) = move n dp
 
-    move :: Dir -> Int -> Point -> Point
-    move dir 0 point = point
-    move dir n point = maybe point (move dir (n - 1)) $ findNext point dir
+    move :: Int -> (Dir, Point) -> (Dir, Point)
+    move 0 dp = dp
+    move n dp = maybe dp (move (n - 1)) $ findNext dp
 
-    findNext point dir = do
+    findNext (dir, point) = do
       (tile, point) <- nextTile point dir <|> telepoint point dir
       guard (tile == '.')
-      return point
+      return (dir, point)
 
     nextTile point dir = tile (add point dir)
     telepoint point dir = last . takeWhile isJust . map tile $ iterate (`add` opposite dir) point
     tile point = (,point) <$> board M.!? point
 
--- teleport point dir = do
+start = minimumBy (compare `on` swap)
 
 add :: Point -> Dir -> Point
 add (x, y) R = (x + 1, y)
@@ -77,7 +75,7 @@ prev dir
 
 opposite dir = next (next dir)
 
-score dir (x, y) = 1000 * y + 4 * x + length (takeWhile (/= dir) (iterate next R))
+score (dir, (x, y)) = 1000 * y + 4 * x + length (takeWhile (/= dir) (iterate next R))
 
 drawBoard :: Board -> [(Dir, Point)] -> Point -> String
 drawBoard board path start = unlines [[drawTile (x, y) | x <- [1 .. mx]] | y <- [1 .. my]]
