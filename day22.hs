@@ -27,15 +27,13 @@ main = interact (unlines . sequence [part1] . parse)
 part1 = ("Part 1: " ++) . show . uncurry score . uncurry follow
 
 follow :: Board -> [PathN] -> (Dir, Point)
-follow board a =
-  let path = scanl' action (R, start) a
-   in trace (show start ++ "\n" ++ drawBoard board path start) $ last path
+follow board = foldl' action (R, start)
   where
     start = minimumBy (compare `on` swap) $ M.keys board
 
-    action (dir, point) RotateL = trace (show point ++ " rotating left: " ++ show (prev dir)) (prev dir, point)
-    action (dir, point) RotateR = trace (show point ++ " rotating right: " ++ show (next dir)) (next dir, point)
-    action (dir, point) (Move n) = trace (show point ++ " tryig to move " ++ show n ++ " " ++ show dir) (dir, move dir n point)
+    action (dir, point) RotateL = (prev dir, point)
+    action (dir, point) RotateR = (next dir, point)
+    action (dir, point) (Move n) = (dir, move dir n point)
 
     move :: Dir -> Int -> Point -> Point
     move dir 0 point = point
@@ -43,7 +41,7 @@ follow board a =
 
     findNext point dir = do
       (tile, point) <- nextTile point dir <|> telepoint point dir
-      trace ("  " ++ show point ++ if tile == '.' then " moving to empty spot" else " rock was hit") $ guard (tile == '.')
+      guard (tile == '.')
       return point
 
     nextTile point dir = tile (add point dir)
