@@ -2,13 +2,9 @@ module Main where
 
 import Control.Arrow ((&&&))
 import Control.Monad (ap, guard, msum)
-import Data.Foldable (maximumBy, minimumBy)
-import Data.Function (on)
-import Data.List (intercalate, partition, sortBy)
-import Data.Maybe (mapMaybe)
+import Data.List (partition)
 import Data.Set (Set)
 import Data.Set qualified as S
-import Data.Tuple (swap)
 import Debug.Trace (trace)
 
 type Point = (Int, Int)
@@ -21,19 +17,21 @@ part2 = ("Part 2: " ++) . show . countRounds . map fst
 
 countRounds = (+ 1) . length . takeWhile (uncurry (/=)) . ap zip tail
 
--- turn :: Set Point -> Set Point
 turn (grove, n) = (collisions newPoints, n + 1)
   where
     newPoints = map (ap (,) (pickDir grove n)) (S.elems grove)
 
     collisions [] = S.empty
+    -- lonely elf, just going to wait for others
     collisions ((elf, Nothing) : elfs) = S.insert elf (collisions elfs)
     collisions ((elf, move@(Just target)) : elfs) =
       let (hits, elfs') = partition ((== move) . snd) elfs
        in collisions elfs'
             <> if null hits
-              then S.singleton target
-              else S.fromList (elf : map fst hits)
+              then -- yey, empty space for this elf, moving there
+                S.singleton target
+              else -- doh, others are trying to get there too, fall back everyone!
+                S.fromAscList (elf : map fst hits)
 
 pickDir :: Set Point -> Int -> Point -> Maybe Point
 pickDir grove n elf = do
