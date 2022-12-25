@@ -54,9 +54,7 @@ walk steps (P x y dir) = case dir of
   L -> P (x - steps) y dir
   U -> P x (y - steps) dir
 
-turnAround p@(P _ _ dir) = turn p (opposite dir)
-
-opposite = next . next
+turnAround p@(P _ _ dir) = turn p (next (next dir))
 
 turn (P x y _) = P x y
 
