@@ -9,32 +9,41 @@ import Data.Set qualified as S
 import Debug.Trace (trace)
 import Text.Printf (printf)
 
-data Valley = Valley {blizzards :: Set Point, start :: Point, end :: Point, width :: Int, height :: Int} deriving (Show)
+data Valley = Valley {blizzards :: Set Point, start :: Point, startTime :: Int, ends :: [Point], width :: Int, height :: Int} deriving (Show)
 
 data Point = P Int Int Dir deriving (Eq, Ord)
 
 data Dir = R | D | L | U deriving (Eq, Ord, Enum, Bounded)
 
-main = interact (unlines . sequence [part1] . parseValley . lines)
+main = interact (unlines . sequence [part1, part2] . parseValley . lines)
 
 part1 = ("Part 1: " ++) . show . journey
 
--- journey :: Valley -> Int
-journey valley@Valley {..} = go [(start, 0)] S.empty
+part2 = ("Part 2: " ++) . show . journey . withSnackRun
   where
-    go ((elfs@(P x y dir), time) : xs) visited
-      | elfs == end = time
-      | key `S.member` visited = go xs visited
-      | otherwise = go (xs ++ plans) (S.insert key visited)
+    withSnackRun valley@Valley {..} = valley {ends = ends ++ [P 0 (-1) U, head ends]}
+
+-- part2 = ("Part 2: " ++) . show . (\valley -> journey . turnBack valley $ journey valley)
+--   where
+--     turnBack valley@Valley {..} journedEnd = valley {start = end, end = start, startTime = journedEnd}
+
+-- journey :: Valley -> Int
+journey valley@Valley {..} = go [(start, startTime)] S.empty ends
+  where
+    go ((elfs@(P x y dir), time) : xs) visited ends'@(end : nextJourneys)
+      | elfs == end = if null nextJourneys then time else go [(elfs, time)] S.empty nextJourneys
+      | key `S.member` visited = go xs visited ends'
+      | otherwise = go (xs ++ plans) (S.insert key visited) ends'
       where
         key = (x, y, time `mod` lcm width height)
         plans = (,time + 1) <$> if safe then elfs : forecasts else forecasts
-        moves = filter inValley . map (walk 1 . turn elfs) $ enumFrom R
+        moves = filter (inValley end) . map (walk 1 . turn elfs) $ enumFrom R
         safe = all (null . forecast time . turn elfs) (enumFrom R)
         forecasts = filter (null . forecast time) moves
 
-    inValley elfs@(P x y _) = end == elfs || inBounds elfs
+    inValley end elfs@(P x y _) = elfs `inPoint` start || elfs `inPoint` end || inBounds elfs
     inBounds elfs@(P x y _) = 0 <= x && 0 <= y && x < width && y < height
+    inPoint (P x1 y1 _) (P x2 y2 _) = x1 == x2 && y1 == y2
     wrapAround (P x y dir) = P (x `mod` width) (y `mod` height) dir
 
     forecast time elfs
@@ -66,8 +75,9 @@ parseValley :: [String] -> Valley
 parseValley input =
   Valley
     { blizzards = parseBlizzards input,
+      startTime = 0,
       start = P 0 (-1) D,
-      end = P (width - 1) height D,
+      ends = [P (width - 1) height D],
       width,
       height
     }
