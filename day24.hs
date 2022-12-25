@@ -9,7 +9,7 @@ import Data.Set qualified as S
 import Debug.Trace (trace)
 import Text.Printf (printf)
 
-data Valley = Valley {blizzards :: Set Point, start :: Point, startTime :: Int, ends :: [Point], width :: Int, height :: Int} deriving (Show)
+data Valley = Valley {blizzards :: Set Point, start :: Point, ends :: [Point], width :: Int, height :: Int} deriving (Show)
 
 data Point = P Int Int Dir deriving (Eq, Ord)
 
@@ -23,12 +23,7 @@ part2 = ("Part 2: " ++) . show . journey . withSnackRun
   where
     withSnackRun valley@Valley {..} = valley {ends = ends ++ [P 0 (-1) U, head ends]}
 
--- part2 = ("Part 2: " ++) . show . (\valley -> journey . turnBack valley $ journey valley)
---   where
---     turnBack valley@Valley {..} journedEnd = valley {start = end, end = start, startTime = journedEnd}
-
--- journey :: Valley -> Int
-journey valley@Valley {..} = go [(start, startTime)] S.empty ends
+journey valley@Valley {..} = go [(start, 0)] S.empty ends
   where
     go ((elfs@(P x y dir), time) : xs) visited ends'@(end : nextJourneys)
       | elfs == end = if null nextJourneys then time else go [(elfs, time)] S.empty nextJourneys
@@ -75,7 +70,6 @@ parseValley :: [String] -> Valley
 parseValley input =
   Valley
     { blizzards = parseBlizzards input,
-      startTime = 0,
       start = P 0 (-1) D,
       ends = [P (width - 1) height D],
       width,
